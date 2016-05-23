@@ -38,6 +38,10 @@ var hinclude;
 
   "use strict";
 
+  if (!window.XMLHttpRequest) {
+    console.warn('hinclude.js is in fallback mode because of a missing requirement: native XMLHttpRequest');
+    return;
+  }
   try {
     (new DOMParser).parseFromString('<!DOCTYPE html><title>Test</title><p>Test', 'text/html');
   }
@@ -123,20 +127,7 @@ var hinclude;
         var data = decodeURIComponent(url.substring(url.indexOf(",") + 1, url.length));
         element.innerHTML = data;
       } else {
-        var req = false;
-        if (window.XMLHttpRequest) {
-          try {
-            req = new XMLHttpRequest();
-          } catch (e1) {
-            req = false;
-          }
-        } else if (window.ActiveXObject) {
-          try {
-            req = new ActiveXObject("Microsoft.XMLHTTP");
-          } catch (e2) {
-            req = false;
-          }
-        }
+        var req = new XMLHttpRequest();
         if (req) {
           this.outstanding += 1;
           req.onreadystatechange = function () {
@@ -147,7 +138,7 @@ var hinclude;
             req.send("");
           } catch (e3) {
             this.outstanding -= 1;
-            alert("Include error: " + url + " (" + e3 + ")");
+            console.warn("Include error: " + url + " (" + e3 + ")");
           }
         }
       }
