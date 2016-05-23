@@ -38,6 +38,7 @@ var hinclude;
 
   "use strict";
 
+  if (!window.console) return;
   if (!window.XMLHttpRequest) {
     console.warn('hinclude.js is in fallback mode because of a missing requirement: native XMLHttpRequest');
     return;
