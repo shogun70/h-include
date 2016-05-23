@@ -38,16 +38,23 @@ var hinclude;
 
   "use strict";
 
+  try {
+    (new DOMParser).parseFromString('<!DOCTYPE html><title>Test</title><p>Test', 'text/html');
+  }
+  catch (error) {
+    console.warn('hinclude.js is in fallback mode because of a missing requirement: HTML parsing in DOMParser');
+    return;
+  }
+
   hinclude = {
     classprefix: "include_",
 
     show_content: function (element, req) {
       var i, include, message, fragment = element.getAttribute('fragment') || 'body';
       if (req.status === 200 || req.status === 304) {
-        var container = document.implementation.createHTMLDocument().documentElement;
-        container.innerHTML = req.responseText;
+        var doc = (new DOMParser).parseFromString(req.responseText, 'text/html');
 
-        var node = container.querySelector(fragment);
+        var node = doc.querySelector(fragment);
 
         if (!node) {
           console.warn("Did not find fragment in response");
