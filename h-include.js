@@ -43,10 +43,15 @@ var hinclude;
     console.warn('hinclude.js is in fallback mode because of a missing requirement: native XMLHttpRequest');
     return;
   }
+
+  // Test for HTML in DOMParser
   try {
-    (new DOMParser).parseFromString('<!DOCTYPE html><title>Test</title><p>Test', 'text/html');
+    var doc = (new DOMParser).parseFromString('<!DOCTYPE html><title>Test</title><p>Test', 'text/html');
   }
   catch (error) {
+    // NOTE old Safari doesn't throw, but doesn't generate a document either
+  }
+  if (!doc) {
     console.warn('hinclude.js is in fallback mode because of a missing requirement: HTML parsing in DOMParser');
     return;
   }
