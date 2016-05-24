@@ -63,7 +63,7 @@ var hinclude;
       var i, include, message, fragment = element.getAttribute('fragment') || 'body';
       if (req.status === 200 || req.status === 304) {
         var doc = (new DOMParser).parseFromString(req.responseText, 'text/html');
-        var src = resolve_url(element.getAttribute('src'));
+        var src = element.src;
         resolve_all(doc, src);
 
         var node = doc.querySelector(fragment);
@@ -111,7 +111,7 @@ var hinclude;
 
       // Check for recursion against current browser location
       // FIXME the comparision should ignore #hash differences
-      var src = resolve_url(element.getAttribute('src'));
+      var src = element.src;
       if(src === document.location.href) {
         throw new Error('Recursion not allowed');
       }
@@ -121,7 +121,7 @@ var hinclude;
       while (elementToCheck.parentNode) {
         if (elementToCheck.nodeName === 'H-INCLUDE') {
 
-          if (src === resolve_url(elementToCheck.getAttribute('src'))) {
+          if (src === elementToCheck.src) {
             throw new Error('Recursion not allowed');
           }
         }
@@ -198,15 +198,22 @@ var hinclude;
       setTimeout(hinclude.show_buffered_content, timeout);
     }
 
-    var src = resolve_url(this.getAttribute('src'));
-    hinclude.include(this, src, this.getAttribute("media"), callback);
+    hinclude.include(this, this.src, this.getAttribute("media"), callback);
   };
 
   proto.refresh = function () {
     var callback = hinclude.set_content_buffered;
-    var src = resolve_url(this.getAttribute('src'));
-    hinclude.include(this, src, this.getAttribute("media"), callback);
+    hinclude.include(this, this.src, this.getAttribute("media"), callback);
   };
+
+  Object.defineProperty(proto, 'src', {
+    get: function() { 
+      return resolve_url(this.getAttribute('src'), this.ownerDocument); 
+    },
+    set: function(src) { 
+      this.setAttribute('src', src); 
+    }
+  });
 
   document.registerElement('h-include', {
     prototype : proto
@@ -232,7 +239,8 @@ var hinclude;
     urlAttributeMap[tagName] = attrs.split(',');
   });
   
-  function resolve_url(relURL, doc) { // fully resolve a URL using doc
+  function resolve_url(relURL, doc) { // fully resolve a URL relative to doc
+    // TODO this would be quicker in pure JS rather than using DOM
     if (!doc) doc = document;
     var link = doc.createElement('a');
     link.href = relURL;
@@ -255,7 +263,17 @@ var hinclude;
       forEach(doc.querySelectorAll(tag), function(el) {
         forEach(attrs, function(attr) { 
           if (!el.hasAttribute(attr)) return;
-          if (attr in el) el[attr] = el[attr];
+
+          // Resolving h-include@src could take either code-path below.
+          // If the registered-elements of `document` also apply to 
+          // documents created by DOMParser (currently not the case)
+          // then it will use the former.
+          // This would call the `.src` getter defined in `hinclude`.
+          // The polyfill will always follow the latter path.
+
+          if (attr in el) {
+            el[attr] = el[attr];
+          }
           else {
             var href = el.getAttribute(attr);
             href = resolve_url(href, doc);
