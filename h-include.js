@@ -63,6 +63,8 @@ var hinclude;
       var i, include, message, fragment = element.getAttribute('fragment') || 'body';
       if (req.status === 200 || req.status === 304) {
         var doc = (new DOMParser).parseFromString(req.responseText, 'text/html');
+        var src = resolve_url(element.getAttribute('src'));
+        resolve_all(doc, src);
 
         var node = doc.querySelector(fragment);
 
@@ -108,7 +110,9 @@ var hinclude;
     include: function (element, url, media, incl_cb) {
 
       // Check for recursion against current browser location
-      if(element.getAttribute('src') === document.location.href) {
+      // FIXME the comparision should ignore #hash differences
+      var src = resolve_url(element.getAttribute('src'));
+      if(src === document.location.href) {
         throw new Error('Recursion not allowed');
       }
 
@@ -117,7 +121,7 @@ var hinclude;
       while (elementToCheck.parentNode) {
         if (elementToCheck.nodeName === 'H-INCLUDE') {
 
-          if (element.getAttribute('src') === elementToCheck.getAttribute('src')) {
+          if (src === resolve_url(elementToCheck.getAttribute('src'))) {
             throw new Error('Recursion not allowed');
           }
         }
@@ -194,15 +198,82 @@ var hinclude;
       setTimeout(hinclude.show_buffered_content, timeout);
     }
 
-    hinclude.include(this, this.getAttribute("src"), this.getAttribute("media"), callback);
+    var src = resolve_url(this.getAttribute('src'));
+    hinclude.include(this, src, this.getAttribute("media"), callback);
   };
 
   proto.refresh = function () {
     var callback = hinclude.set_content_buffered;
-    hinclude.include(this, this.getAttribute("src"), this.getAttribute("media"), callback);
+    var src = resolve_url(this.getAttribute('src'));
+    hinclude.include(this, src, this.getAttribute("media"), callback);
   };
 
   document.registerElement('h-include', {
     prototype : proto
   });
+
+
+  /* URL resolver for HTML document */
+  // TODO doesn't handle @srcset, a@ping, probably others
+
+  // The urlAttributes definition string uses lower-case tagNames 
+  // and attribute *property* names
+  var urlAttributes = 'link@href script@src img@longDesc,src iframe@longDesc,src object@data embed@src video@poster,src audio@src source@src input@formAction,src button@formAction,src a@href area@href q@cite blockquote@cite ins@cite del@cite form@action';
+
+  // TODO what about URLs on custom-elements?  
+  urlAttributes += ' h-include@src';
+
+  var urlAttributeMap = {
+    // keys are lower-case tagNames
+    // values are an attribute-list
+  };
+  urlAttributes.split(/\s+/).forEach(function(text) {
+    var m = text.split('@'), tagName = m[0], attrs = m[1];
+    urlAttributeMap[tagName] = attrs.split(',');
+  });
+  
+  function resolve_url(relURL, doc) { // fully resolve a URL using doc
+    if (!doc) doc = document;
+    var link = doc.createElement('a');
+    link.href = relURL;
+    return link.href;
+  }
+
+  function resolve_all(doc, baseURL) { // fully resolve all URLs in doc
+    // if doc has no `<base href>` then add one
+    if (!baseURL) baseURL = document.URL;
+    else baseURL = resolve_url(baseURL);
+
+    var base; 
+    if (!doc.querySelector('base[href]')) {
+      base = doc.createElement('base');
+      base.href = baseURL;
+      doc.head.insertBefore(base, doc.head.firstChild);
+    }
+
+    forOwn(urlAttributeMap, function(attrs, tag) {
+      forEach(doc.querySelectorAll(tag), function(el) {
+        forEach(attrs, function(attr) { 
+          if (!el.hasAttribute(attr)) return;
+          if (attr in el) el[attr] = el[attr];
+          else {
+            var href = el.getAttribute(attr);
+            href = resolve_url(href, doc);
+            el.setAttribute(attr, href);
+          }
+        });
+      });
+    });
+
+    if (base) base.parentNode.removeChild(base);
+  }
+
+  function forOwn(map, callback, context) { // modelled on lodash.forOwn
+    for (var slot in map) callback.call(context, map[slot], slot, map);
+  }
+
+  function forEach(array, callback, context) { // modelled on lodash.forEach
+    for (var n=array.length, i=0; i<n; i++) callback.call(context, array[i], i, array);
+  } 
+
 }());
