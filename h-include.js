@@ -177,7 +177,7 @@ var hinclude;
     }
   };
 
-  var proto = Object.create(window.HTMLElement.prototype);
+  var proto = hinclude.prototype = Object.create(window.HTMLElement.prototype);
 
   proto.attributeChangedCallback = function (attrName) {
     if (attrName === 'src') {
