@@ -48,6 +48,29 @@ var onSuccess = function(){
 document.getElementsByTagName('h-include')[0].onSuccess = onSuccess;
 ```
 
+Attach a transform callback to modify the fetched contents before inserting
+
+```
+var transform = function(fragment, details){
+  /* 
+    fragment: a DocumentFragment containing the contents of 
+      the body (or fragment) of the included page
+    details: an object with fields "url", "document"
+      url: the url of the included page
+      document: a HTMLDocument of the included page (not including the body)
+  */
+
+  // modify the DOM fragment (or create a new one)
+  return fragment; // return any node, or just the passed DOM fragment
+}
+
+document.getElementsByTagName('h-include')[0].transformCallback = transform;
+
+// alternatively, set one transform callback for every `<h-include>`
+hinclude.prototype.transformCallback = transform;
+```
+
+
 Other features:
 
  - Supports sync mode (batch include, timeout based) and async mode (insert on response)

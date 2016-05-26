@@ -60,20 +60,64 @@ var hinclude;
     classprefix: "include_",
 
     show_content: function (element, req) {
-      var i, include, message, fragment = element.getAttribute('fragment') || 'body';
+      var fragmentSelector = element.getAttribute('fragment');
       if (req.status === 200 || req.status === 304) {
         var doc = (new DOMParser).parseFromString(req.responseText, 'text/html');
         var src = element.src;
         resolve_all(doc, src);
 
-        var node = doc.querySelector(fragment);
+        var node = fragmentSelector ? 
+          doc.querySelector(fragmentSelector) :
+          doc.body;
 
         if (!node) {
           console.warn("Did not find fragment in response");
           return;
         }
 
-        element.innerHTML = node.innerHTML;
+        var fragment = createFragment(node.childNodes);
+        doc.documentElement.removeChild(doc.body);
+
+        if (element.transformCallback) {
+          var details = {
+            url: src,
+            document: doc
+          };
+          fragment = element.transformCallback(fragment, details);
+        }
+
+        if (!fragment || !fragment.nodeType) {
+          console.warn('transformCallback() did not return a document, fragment or other node.');
+          return;
+        }
+
+        switch (fragment.nodeType) {
+        case 9: // Node.DOCUMENT_NODE
+          node = fragment.body;
+          fragment = createFragment(node.childNodes);
+          break;
+        case 11: // Node.DOCUMENT_FRAGMENT_NODE
+          node = fragment.querySelector('body');
+          if (!node) break;
+	  fragment = createFragment(node.childNodes);
+          break;
+        default:
+          break;
+        }
+          
+        // TODO how might old contents be useful?
+        // Currently they aren't made available.
+        var oldContents = createFragment(element.childNodes, document);
+
+        // WARN: In theory nodes should be adopted or imported before inserting
+        // In practice most browsers don't require it, 
+        // but the behavior of custom-elements coming from other documents 
+        // is variable (and may change).
+        // `document.importNode()` should be fail-safe but has more over-head
+        // than `document.adoptNode()`.
+
+        fragment = element.ownerDocument.adoptNode(fragment);
+        element.appendChild(fragment);
         
         element.onSuccess && element.onSuccess();
       }
@@ -293,5 +337,20 @@ var hinclude;
   function forEach(array, callback, context) { // modelled on lodash.forEach
     for (var n=array.length, i=0; i<n; i++) callback.call(context, array[i], i, array);
   } 
+
+  function createFragment(nodeList, doc) {
+    if (!doc) {
+      var node = nodeList.nodeType ? nodeList : nodeList[0];
+      doc = node ? node.ownerDocument : document;
+    }
+    var fragment = doc.createDocumentFragment();
+    return appendNodes(fragment, nodeList);
+  }
+
+  function appendNodes(parent, nodeList) { // nodeList can also be a single-node
+    if (nodeList.nodeType) nodeList = [ nodeList ];
+    for (var i=nodeList.length-1; i>=0; i--) parent.appendChild(nodeList[i]);
+    return parent;
+  }
 
 }());
