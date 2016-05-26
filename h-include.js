@@ -231,6 +231,11 @@ var hinclude;
 
   proto.attachedCallback = function () {
 
+    if (!this.hasAttribute('src')) {
+      // TODO should this have more complex behavior?
+      return;
+    }
+
     var mode = hinclude.get_meta("include_mode", "buffered");
     var callback;
 
@@ -246,15 +251,28 @@ var hinclude;
   };
 
   proto.refresh = function () {
+
+    if (!this.hasAttribute('src')) { 
+      // TODO should we save initial contents of <h-include>
+      // and restore them here?
+      this.innerHTML = '';
+      return;
+    }
+
     var callback = hinclude.set_content_buffered;
     hinclude.include(this, this.src, this.getAttribute("media"), callback);
   };
 
   Object.defineProperty(proto, 'src', {
     get: function() { 
+      if (!this.hasAttribute('src')) return '';
       return resolve_url(this.getAttribute('src'), this.ownerDocument); 
     },
     set: function(src) { 
+      if (null == src) {
+        this.removeAttribute('src');
+        return;
+      }
       this.setAttribute('src', src); 
     }
   });
