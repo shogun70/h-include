@@ -367,7 +367,10 @@ var hinclude;
 
   function appendNodes(parent, nodeList) { // nodeList can also be a single-node
     if (nodeList.nodeType) nodeList = [ nodeList ];
-    for (var i=nodeList.length-1; i>=0; i--) parent.appendChild(nodeList[i]);
+    else nodeList = [].slice.call(nodeList, 0);
+    forEach(nodeList, function(node) {
+    	parent.appendChild(node);
+    });
     return parent;
   }
 
