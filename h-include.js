@@ -59,10 +59,35 @@ var hinclude;
   hinclude = {
     classprefix: "include_",
 
+    parse_html: function(markup) {
+        return (new DOMParser).parseFromString(markup, 'text/html');
+    },
+    check_recursion: function(element) {
+      // Check for recursion against current browser location
+      // FIXME the comparision should ignore #hash differences
+      var src = element.src;
+      if(src === document.location.href) {
+        throw new Error('Recursion not allowed');
+      }
+
+      // Check for recursion is ascendents
+      var elementToCheck = element.parentNode;
+      while (elementToCheck.parentNode) {
+        if (elementToCheck.nodeName === 'H-INCLUDE') {
+
+          if (src === elementToCheck.src) {
+            throw new Error('Recursion not allowed');
+          }
+        }
+
+        elementToCheck = elementToCheck.parentNode;
+      }
+    },
     show_content: function (element, req) {
       var fragmentSelector = element.getAttribute('fragment');
       if (req.status === 200 || req.status === 304) {
-        var doc = (new DOMParser).parseFromString(req.responseText, 'text/html');
+        var parseHTML = element.parseHTML || hinclude.parse_html;
+        var doc = parseHTML(req.responseText);
         var src = element.src;
         resolve_all(doc, src);
 
@@ -153,25 +178,7 @@ var hinclude;
 
     include: function (element, url, media, incl_cb) {
 
-      // Check for recursion against current browser location
-      // FIXME the comparision should ignore #hash differences
-      var src = element.src;
-      if(src === document.location.href) {
-        throw new Error('Recursion not allowed');
-      }
-
-      // Check for recursion is ascendents
-      var elementToCheck = element.parentNode;
-      while (elementToCheck.parentNode) {
-        if (elementToCheck.nodeName === 'H-INCLUDE') {
-
-          if (src === elementToCheck.src) {
-            throw new Error('Recursion not allowed');
-          }
-        }
-
-        elementToCheck = elementToCheck.parentNode;
-      }
+      hinclude.check_recursion(element);
 
       if (media && window.matchMedia && !window.matchMedia(media).matches) {
         return;
