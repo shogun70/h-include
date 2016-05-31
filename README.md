@@ -54,10 +54,11 @@ Attach a transform callback to modify the fetched contents before inserting
 var transform = function(fragment, details){
   /* 
     fragment: a DocumentFragment containing the contents of 
-      the body (or fragment) of the included page
+      the body of the included page
     details: an object with fields "url", "document"
       url: the url of the included page
       document: a HTMLDocument of the included page (not including the body)
+    this: in this function it will be `<h-include>` element
   */
 
   // modify the DOM fragment (or create a new one)
