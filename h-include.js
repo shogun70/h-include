@@ -170,7 +170,12 @@ var hinclude;
       var include;
       while (hinclude.buffer.length > 0) {
         include = hinclude.buffer.pop();
-        hinclude.show_content(include[0], include[1]);
+        try {
+          hinclude.show_content(include[0], include[1]);
+        }
+        catch(error) { // rethrow error without stopping the loop
+          setTimeout(function() { throw error; });
+        }
       }
     },
 
