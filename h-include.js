@@ -87,25 +87,21 @@ var hinclude;
         elementToCheck = elementToCheck.parentNode;
       }
     },
+    extract_fragment: function(bodyFragment, fragmentSelector, details) {
+      var node = bodyFragment.querySelector(fragmentSelector);
+      if (!node) throw Error("Did not find fragment in response");
+      return createFragment(node.childNodes);
+    },
     show_content: function (element, req) {
-      var fragmentSelector = element.getAttribute('fragment');
       if (req.status === 200 || req.status === 304) {
+        var src = element.src;
         var doc = hinclude.parse_html(req.responseText);
         doc = hinclude.normalize(doc, { 
-          url: element.src
+          url: src
         });
 
-        var node = fragmentSelector ? 
-          doc.querySelector(fragmentSelector) :
-          doc.body;
 
-        if (!node) {
-          console.warn("Did not find fragment in response");
-          return;
-        }
-
-        var fragment = createFragment(node.childNodes);
-        doc.documentElement.removeChild(doc.body);
+        var fragment = createFragment(doc.body.childNodes);
 
         if (element.transformCallback) {
           var details = {
@@ -116,17 +112,17 @@ var hinclude;
         }
 
         if (!fragment || !fragment.nodeType) {
-          console.warn('transformCallback() did not return a document, fragment or other node.');
-          return;
+          throw Error('transformCallback() did not return a document, fragment or other node.');
         }
 
+        // fragment should be a DocumentFragment but handle other types anyway
         switch (fragment.nodeType) {
         case 9: // Node.DOCUMENT_NODE
-          node = fragment.body;
+          var node = fragment.body;
           fragment = createFragment(node.childNodes);
           break;
         case 11: // Node.DOCUMENT_FRAGMENT_NODE
-          node = fragment.querySelector('body');
+          var node = fragment.querySelector('body');
           if (!node) break;
 	  fragment = createFragment(node.childNodes);
           break;
@@ -136,7 +132,7 @@ var hinclude;
           
         // TODO how might old contents be useful?
         // Currently they aren't made available.
-        var oldContents = createFragment(element.childNodes, document);
+        var oldContents = createFragment(element.childNodes);
 
         // WARN: In theory nodes should be adopted or imported before inserting
         // In practice most browsers don't require it, 
@@ -260,6 +256,13 @@ var hinclude;
 
     hinclude.include(this, this.src, this.getAttribute("media"), callback);
   };
+
+  proto.transformCallback = function(bodyFragment, details) {
+      if (!this.hasAttribute('fragment')) return bodyFragment;
+      var fragmentSelector = this.getAttribute('fragment');
+      if (fragmentSelector === 'body') return bodyFragment;
+      return hinclude.extract_fragment(bodyFragment, fragmentSelector, details);
+  },
 
   proto.refresh = function () {
 
