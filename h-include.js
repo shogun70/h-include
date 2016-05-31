@@ -59,10 +59,14 @@ var hinclude;
   hinclude = {
     classprefix: "include_",
 
+    parse_html: function(markup) {
+        return (new DOMParser).parseFromString(markup, 'text/html');
+    },
     show_content: function (element, req) {
       var i, include, message, fragment = element.getAttribute('fragment') || 'body';
       if (req.status === 200 || req.status === 304) {
-        var doc = (new DOMParser).parseFromString(req.responseText, 'text/html');
+        var parseHTML = element.parseHTML || hinclude.parse_html;
+        var doc = parseHTML(req.responseText);
 
         var node = doc.querySelector(fragment);
 
