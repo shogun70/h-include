@@ -62,6 +62,10 @@ var hinclude;
     parse_html: function(markup) {
         return (new DOMParser).parseFromString(markup, 'text/html');
     },
+    normalize: function(doc, details) {
+      resolve_all(doc, details.url);
+      return doc;
+    },
     check_recursion: function(element) {
       // Check for recursion against current browser location
       // FIXME the comparision should ignore #hash differences
@@ -86,10 +90,10 @@ var hinclude;
     show_content: function (element, req) {
       var fragmentSelector = element.getAttribute('fragment');
       if (req.status === 200 || req.status === 304) {
-        var parseHTML = element.parseHTML || hinclude.parse_html;
-        var doc = parseHTML(req.responseText);
-        var src = element.src;
-        resolve_all(doc, src);
+        var doc = hinclude.parse_html(req.responseText);
+        doc = hinclude.normalize(doc, { 
+          url: element.src
+        });
 
         var node = fragmentSelector ? 
           doc.querySelector(fragmentSelector) :
