@@ -41,6 +41,25 @@ var hinclude;
   hinclude = {
     classprefix: "include_",
 
+    check_recursion: function(element) {
+      // Check for recursion against current browser location
+      if(element.getAttribute('src') === document.location.href) {
+        throw new Error('Recursion not allowed');
+      }
+
+      // Check for recursion is ascendents
+      var elementToCheck = element.parentNode;
+      while (elementToCheck.parentNode) {
+        if (elementToCheck.nodeName === 'H-INCLUDE') {
+
+          if (element.getAttribute('src') === elementToCheck.getAttribute('src')) {
+            throw new Error('Recursion not allowed');
+          }
+        }
+
+        elementToCheck = elementToCheck.parentNode;
+      }
+    },
     show_content: function (element, req) {
       var i, include, message, fragment = element.getAttribute('fragment');
       if (req.status === 200 || req.status === 304) {
@@ -97,23 +116,7 @@ var hinclude;
 
     include: function (element, url, media, incl_cb) {
 
-      // Check for recursion against current browser location
-      if(element.getAttribute('src') === document.location.href) {
-        throw new Error('Recursion not allowed');
-      }
-
-      // Check for recursion is ascendents
-      var elementToCheck = element.parentNode;
-      while (elementToCheck.parentNode) {
-        if (elementToCheck.nodeName === 'H-INCLUDE') {
-
-          if (element.getAttribute('src') === elementToCheck.getAttribute('src')) {
-            throw new Error('Recursion not allowed');
-          }
-        }
-
-        elementToCheck = elementToCheck.parentNode;
-      }
+      hinclude.check_recursion(element);
 
       if (media && window.matchMedia && !window.matchMedia(media).matches) {
         return;
