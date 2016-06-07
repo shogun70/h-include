@@ -193,19 +193,24 @@ var hinclude;
       }
       var scheme = url.substring(0, url.indexOf(":"));
       if (scheme.toLowerCase() === "data") {
+        var status = 200;
         var delimiterOffset = url.indexOf(',');
         var type = url.substring(scheme.length + 1, delimiterOffset);
         var data = decodeURIComponent(url.substring(delimiterOffset + 1, url.length));
         type = type.split(';')[0]; // TODO howto handle charset, if present?
         if (/^text\/html$/i.test(type)) {
           element.innerHTML = data;
+          element.onSuccess && element.onSuccess();
         }
         else if (/^text\/plain$/i.test(type)) {
           element.textContent = data;
+          element.onSuccess && element.onSuccess();
         }
         else {
+          status = 415; // Unsupported Media Type FIXME is this valid / useful?
           console.warn('data: URI must be "text/plain" or "text/html"');
         }
+        element.onEnd && element.onEnd({ status: status });
       } else {
         var req = new XMLHttpRequest();
         if (req) {
