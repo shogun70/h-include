@@ -192,9 +192,20 @@ var hinclude;
         return;
       }
       var scheme = url.substring(0, url.indexOf(":"));
-      if (scheme.toLowerCase() === "data") { // just text/plain for now
-        var data = decodeURIComponent(url.substring(url.indexOf(",") + 1, url.length));
-        element.innerHTML = data;
+      if (scheme.toLowerCase() === "data") {
+        var delimiterOffset = url.indexOf(',');
+        var type = url.substring(scheme.length + 1, delimiterOffset);
+        var data = decodeURIComponent(url.substring(delimiterOffset + 1, url.length));
+        type = type.split(';')[0]; // TODO howto handle charset, if present?
+        if (/^text\/html$/i.test(type)) {
+          element.innerHTML = data;
+        }
+        else if (/^text\/plain$/i.test(type)) {
+          element.textContent = data;
+        }
+        else {
+          console.warn('data: URI must be "text/plain" or "text/html"');
+        }
       } else {
         var req = new XMLHttpRequest();
         if (req) {
