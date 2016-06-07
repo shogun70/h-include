@@ -92,6 +92,9 @@ var hinclude;
       if (!node) throw Error("Did not find fragment in response");
       return createFragment(node.childNodes);
     },
+    on_end: function(element, req) {
+      element.className = hinclude.classprefix + req.status;
+    },
     show_content: function (element, req) {
       if (req.status === 200 || req.status === 304) {
         var src = element.src;
@@ -146,7 +149,7 @@ var hinclude;
         
         element.onSuccess && element.onSuccess();
       }
-      element.className = hinclude.classprefix + req.status;
+      element.onEnd && element.onEnd(req);
     },
 
     set_content_async: function (element, req) {
@@ -267,7 +270,11 @@ var hinclude;
       var fragmentSelector = this.getAttribute('fragment');
       if (fragmentSelector === 'body') return bodyFragment;
       return hinclude.extract_fragment(bodyFragment, fragmentSelector, details);
-  },
+  }
+
+  proto.onEnd = function(req) {
+    hinclude.on_end(this, req);
+  }
 
   proto.refresh = function () {
 

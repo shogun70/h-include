@@ -48,6 +48,21 @@ var onSuccess = function(){
 document.getElementsByTagName('h-include')[0].onSuccess = onSuccess;
 ```
 
+Over-ride the default onEnd callback
+
+```
+var onEnd = function(xhr){
+  /* 
+    xhr: the XMLHttpRequest instance used to fetch the included content.
+        This can be used to obtain the `status` HTTP request.
+    this: in this function it will be `<h-include>` element
+  */
+  ...
+}
+
+document.getElementsByTagName('h-include')[0].onEnd = onEnd;
+```
+
 Attach a transform callback to modify the fetched contents before inserting
 
 ```
