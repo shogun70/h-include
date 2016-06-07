@@ -38,11 +38,37 @@ Refresh an h-include element
 document.getElementsByTagName('h-include')[0].refresh()
 ```
 
+Attach a transform callback to modify the fetched contents before inserting
+
+```
+var transform = function(bodyFragment, details){
+  /* 
+    bodyFragment: a DocumentFragment containing the contents of 
+      the body of the included page
+    details: an object with fields "url", "document"
+      url: the url of the included page
+      document: a HTMLDocument of the included page (not including the body)
+    this: in this function it will be `<h-include>` element
+  */
+
+  // modify the DOM fragment (or create a new one)
+  return bodyFragment; // return any node, or just the passed DOM fragment
+}
+
+document.getElementsByTagName('h-include')[0].transformCallback = transform;
+
+// alternatively, set one transform callback for every `<h-include>`
+hinclude.prototype.transformCallback = transform;
+```
+
 Attach an onSuccess callback
 
 ```
-var onSuccess = function(){
-  // ...
+var onSuccess = function(details){
+  /* 
+    details: the same object that is passed to transformCallback()
+    this: in this function it will be `<h-include>` element
+  */
 }
 
 document.getElementsByTagName('h-include')[0].onSuccess = onSuccess;
@@ -61,29 +87,6 @@ var onEnd = function(xhr){
 }
 
 document.getElementsByTagName('h-include')[0].onEnd = onEnd;
-```
-
-Attach a transform callback to modify the fetched contents before inserting
-
-```
-var transform = function(fragment, details){
-  /* 
-    fragment: a DocumentFragment containing the contents of 
-      the body of the included page
-    details: an object with fields "url", "document"
-      url: the url of the included page
-      document: a HTMLDocument of the included page (not including the body)
-    this: in this function it will be `<h-include>` element
-  */
-
-  // modify the DOM fragment (or create a new one)
-  return fragment; // return any node, or just the passed DOM fragment
-}
-
-document.getElementsByTagName('h-include')[0].transformCallback = transform;
-
-// alternatively, set one transform callback for every `<h-include>`
-hinclude.prototype.transformCallback = transform;
 ```
 
 

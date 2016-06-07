@@ -106,11 +106,11 @@ var hinclude;
 
         var fragment = createFragment(doc.body.childNodes);
 
+        var details = {
+          url: src,
+          document: doc
+        };
         if (element.transformCallback) {
-          var details = {
-            url: src,
-            document: doc
-          };
           fragment = element.transformCallback(fragment, details);
         }
 
@@ -147,7 +147,7 @@ var hinclude;
         fragment = element.ownerDocument.adoptNode(fragment);
         element.appendChild(fragment);
         
-        element.onSuccess && element.onSuccess();
+        element.onSuccess && element.onSuccess(details);
       }
       element.onEnd && element.onEnd(req);
     },
