@@ -14,7 +14,7 @@ function start() {
         build: process.env.TRAVIS_BUILD_NUMBER,
         username: process.env.SAUCE_USERNAME,
         accessKey: process.env.SAUCE_ACCESS_KEY,
-        browserName: "firefox"
+        browserName: "chrome"
       }).build();
     } else {
       driver = new webdriver.Builder()
