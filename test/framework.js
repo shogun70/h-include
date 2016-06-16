@@ -6,10 +6,22 @@ var webdriver = require('selenium-webdriver'),
 var driver;
 
 function start() {
-    driver = new webdriver.Builder()
-    .forBrowser('chrome')
-    .build();
-    // FIXME would be nice to capture the browser window console
+    if (process.env.SAUCE_USERNAME != undefined) {
+      driver = new webdriver.Builder()
+      .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
+      .withCapabilities({
+        'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
+        build: process.env.TRAVIS_BUILD_NUMBER,
+        username: process.env.SAUCE_USERNAME,
+        accessKey: process.env.SAUCE_ACCESS_KEY,
+        browserName: "firefox"
+      }).build();
+    } else {
+      driver = new webdriver.Builder()
+      .withCapabilities({
+        browserName: "firefox"
+      }).build();
+   }
 }
 
 function stop() {
