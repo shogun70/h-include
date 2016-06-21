@@ -31,8 +31,8 @@ function nextBrowser(fail) {
 	var browser = browsers.shift();
 	if (browser) {
 		tests = allTests.slice(0);
-		framework.start(browser);
-		setTimeout(nextTest, 1000);
+		framework.start(browser)
+		.then(nextTest);
 	}
 	else {
 		process.exit(totalFails ? 1 : 0);

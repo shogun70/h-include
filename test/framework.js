@@ -9,6 +9,7 @@ var errors;
 function start(caps) {
   if (driver) throw Error('Previous session not stopped.');
 
+    var driverFu;
     if (process.env.SAUCE_USERNAME) {
       var tunnelId, buildId;
       if (process.env.TRAVIS === 'true') {
@@ -19,7 +20,7 @@ function start(caps) {
         tunnelId = process.env.SAUCE_TUNNEL_ID;
         buildId = 0;
       }
-      driver = new webdriver.Builder()
+      driverFu = new webdriver.Builder()
       .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
       .withCapabilities({
         'tunnel-identifier': tunnelId,
@@ -28,12 +29,13 @@ function start(caps) {
         accessKey: process.env.SAUCE_ACCESS_KEY
       })
       .withCapabilities(caps)
-      .build();
+      .buildAsync();
     } else {
-      driver = new webdriver.Builder()
+      driverFu = new webdriver.Builder()
       .withCapabilities(caps)
-      .build();
-   }
+      .buildAsync();
+    }
+    return driverFu.then(function(result) { driver = result; });
 }
 
 function stop() {
