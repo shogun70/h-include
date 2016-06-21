@@ -36,7 +36,10 @@ console.log(tunnelId, ' ', buildId);
       .withCapabilities(caps)
       .buildAsync();
     }
-    return driverFu.then(function(result) { driver = result; });
+    return driverFu.then(function(result) { 
+      driver = result; 
+      console.log(driver.getCapabilities());
+    });
 }
 
 function stop() {
