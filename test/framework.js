@@ -37,19 +37,16 @@ function start(caps) {
 }
 
 function stop() {
-    driver.quit();
-    driver = null;
+    return driver.quit()
+    .then(function() { driver = undefined; });;
 }
 
 function runTests(page_loc, tests, viewport) {
   errors = [];
 
-  var ready = true;
-  var promise = Promise.resolve();
   if (!viewport) return run(page_loc, tests);
 
   if(viewport.width && viewport.height){
-    ready = false;
     var window = driver.manage().window();
     return window.setSize(viewport.width, viewport.height)
     .then(function() { 

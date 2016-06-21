@@ -47,7 +47,9 @@ function nextTest(errorCount) {
 		.then(nextTest);
 	}
 	else {
-		framework.stop();
-		nextBrowser(errorCount ? 1 : 0);
+		framework.stop()
+		.then(function() {
+			nextBrowser(errorCount ? 1 : 0);
+		});
 	}
 }
