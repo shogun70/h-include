@@ -20,12 +20,11 @@ function start(caps) {
         tunnelId = process.env.SAUCE_TUNNEL_ID;
         buildId = 0;
       }
-console.log(tunnelId, ' ', buildId);
       driverFu = new webdriver.Builder()
       .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
       .withCapabilities({
-        'tunnel-identifier': tunnelId,
-        build: buildId,
+        //'tunnel-identifier': tunnelId,
+        //build: buildId,
         username: process.env.SAUCE_USERNAME,
         accessKey: process.env.SAUCE_ACCESS_KEY
       })
