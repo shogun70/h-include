@@ -1,0 +1,10 @@
+[
+{"browserName":"android","platform":"Linux","version":"4.0","device-type":"tablet"},
+{"browserName":"ipad","platform":"OS X 10.11","version":"6"},
+{"browserName":"MicrosoftEdge","platform":"Windows 10","version":""},
+{"browserName":"internet explorer","platform":"Windows 10","version":"11"},
+{"browserName":"internet explorer","platform":"Windows 8","version":"10"},
+{"browserName":"safari","platform":"OS X 10.11","version":""},
+{"browserName":"chrome","platform":"Windows","version":""},
+{"browserName":"firefox","platform":"Windows","version":""}
+]
