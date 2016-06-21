@@ -38,7 +38,7 @@ console.log(tunnelId, ' ', buildId);
     }
     return driverFu.then(function(result) { 
       driver = result; 
-      console.log(driver.getCapabilities());
+      driver.getCapabilities().then(function(cap) { console.log(cap) });
     });
 }
 
