@@ -24,7 +24,7 @@ var totalErrors = 0;
 
 var browsers = allBrowsers.slice(0);
 var tests;
-setTimeout(nextBrowser, 1000);
+nextBrowser(false);
 
 function nextBrowser(fail) {
 	if (fail) totalFails++;
