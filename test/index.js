@@ -24,10 +24,16 @@ var totalErrors = 0;
 
 testAllBrowsers()
 .then(function() {
+	console.info('\n\n');
+	if (totalFails <= 0) console.info('Looks good');
+	else console.info('Some problems were found. ' + totalErrors + ' errors on ' + totalFails + ' different browsers.');
 	process.exit(totalFails ? 1 : 0);
 },
 function(err) {
-	console.error('Somewhere an unhandled exception screams');
+	console.error(
+		'\n\n' +
+		'Somewhere an unhandled exception screams'
+	);
 	console.error(err);
 	process.exit(1);
 });
@@ -50,9 +56,11 @@ function testAllBrowsers() {
 function testBrowser(browser) {
 	var errors;
 	console.info(
+		'\n' + 
 		'Starting browser ' + browser.browserName + 
 		(browser.version ? ' ' + browser.version : '') +
-		(browser.platform ? ' on ' +  browser.platform : '')
+		(browser.platform ? ' on ' +  browser.platform : '') +
+		'\n'
 	);
 	return framework.start(browser)
 	.then(runAllTests)
