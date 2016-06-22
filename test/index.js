@@ -49,6 +49,11 @@ function testAllBrowsers() {
 
 function testBrowser(browser) {
 	var errors;
+	console.info(
+		'Starting browser ' + browser.browserName + 
+		(browser.version ? ' ' + browser.version : '') +
+		(browser.platform ? ' on ' +  browser.platform : '')
+	);
 	return framework.start(browser)
 	.then(runAllTests)
 	.then(function(errCount) {
@@ -65,6 +70,10 @@ function runAllTests() {
 	return allTests.reduce(function(promise, test) {
 		return promise
 		.then(function() { 
+			console.info(
+				'Testing ' + test.file +
+				(test.viewport ? ' @ ' + test.viewport.width + 'x' + test.viewport.height : '')
+			);
 			return framework.runTests(test.file, test.expect, test.viewport); 
 		})
 		.then(function(errCount) { 
