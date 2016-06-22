@@ -22,34 +22,58 @@ if (testName) allTests = allTests.filter(function(test) {
 var totalFails = 0;
 var totalErrors = 0;
 
-var browsers = allBrowsers.slice(0);
-var tests;
-nextBrowser(false);
+testAllBrowsers()
+.then(function() {
+	process.exit(totalFails ? 1 : 0);
+},
+function(err) {
+	console.error('Somewhere an unhandled exception screams');
+	console.error(err);
+	process.exit(1);
+});
 
-function nextBrowser(fail) {
-	if (fail) totalFails++;
-	var browser = browsers.shift();
-	if (browser) {
-		tests = allTests.slice(0);
-		framework.start(browser)
-		.then(nextTest);
-	}
-	else {
-		process.exit(totalFails ? 1 : 0);
-	}
-}
+// FINISHED. The following is hoisted
 
-function nextTest(errorCount) {
-	totalErrors += errorCount;
-	var test = tests.shift();
-	if (test) {
-		framework.runTests(test.file, test.expect, test.viewport)
-		.then(nextTest);
-	}
-	else {
-		framework.stop()
-		.then(function() {
-			nextBrowser(errorCount ? 1 : 0);
+function testAllBrowsers() {
+	return allBrowsers.reduce(function(promise, browser) {
+		return promise
+		.then(function() { 
+			return testBrowser(browser); 
+		})
+		.then(function(errors) { 
+			totalErrors += errors;
+			if (errors) totalFails++; 
 		});
-	}
+	}, Promise.resolve());
+}	
+
+function testBrowser(browser) {
+	var errors;
+	return framework.start(browser)
+	.then(runAllTests)
+	.then(function(errCount) {
+		errors = errCount;
+		return framework.stop();
+	})
+	.then(function() {
+		return errors;
+	});
 }
+
+function runAllTests() {
+	var errors = 0;
+	return allTests.reduce(function(promise, test) {
+		return promise
+		.then(function() { 
+			return framework.runTests(test.file, test.expect, test.viewport); 
+		})
+		.then(function(errCount) { 
+			errors += errCount; 
+		});
+	}, Promise.resolve())
+	.then(function() { 
+		return errors; 
+	});
+}
+
+
