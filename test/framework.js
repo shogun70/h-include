@@ -20,15 +20,15 @@ function start(caps) {
         tunnelId = process.env.SAUCE_TUNNEL_ID;
         buildId = 0;
       }
-      driverFu = new webdriver.Builder()
-      .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
-      .withCapabilities(caps)
-      .withCapabilities({
+      caps = Object.assign({
         'tunnel-identifier': tunnelId,
         build: buildId,
         username: process.env.SAUCE_USERNAME,
         accessKey: process.env.SAUCE_ACCESS_KEY
-      })
+      }, caps);
+      driverFu = new webdriver.Builder()
+      .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
+      .withCapabilities(caps)
       .buildAsync();
     } else {
       driverFu = new webdriver.Builder()
