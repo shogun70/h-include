@@ -60,12 +60,15 @@ function runTests(page_loc, tests, viewport) {
       if (sizes.width != viewport.width) {
         throw 'Could not set viewport dimensions';
       }
+    })
+    .then(function() {
       return run(page_loc, tests);
-    }, // catch setSize() or getSize() errors
+    }, // now catch setSize() or getSize() errors
     function(error) { // WARN don't remove or process crashes out
       console.info('Ignoring viewport dependent test');
+      return 0;
     });
-  }
+   }
 }
 
 function run(page_loc, tests) {
