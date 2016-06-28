@@ -17,13 +17,18 @@
 
 <h2 id="h">Update src attribute</h2>
 
-<p id="a" name="a"><h-include src="included"></h-include></p>
+<p id="a" name="a"><h-include></h-include></p>
 
 <script>
+window.onload = function() {
+
 var element = document.getElementsByTagName('h-include')[0];
-element.onEnd = function(element, req){
-  hinclude.on_end(element, req);
-  element.setAttribute('src', 'new');
+element.setAttribute('src', 'included');
+
+setTimeout(function() {
+element.setAttribute('src', 'new');
+});
+
 }
 </script>
 
