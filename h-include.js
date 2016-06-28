@@ -101,16 +101,19 @@ var hinclude;
       onEnd(element, req);
     },
 
-    set_content_async: function (element, req) {
-      if (req.readyState === 4) {
+    set_content_async: function (element, req, complete) {
+      if (complete) {
         hinclude.show_content(element, req);
       }
     },
 
     buffer: [],
-    set_content_buffered: function (element, req) {
-      if (req.readyState === 4) {
+    set_content_buffered: function (element, req, complete) {
+      if (!complete) {
+        hinclude.outstanding += 1;
         hinclude.buffer.push([element, req]);
+      }
+      else {
         hinclude.outstanding -= 1;
         if (hinclude.outstanding === 0) {
           hinclude.show_buffered_content();
@@ -121,7 +124,7 @@ var hinclude;
     show_buffered_content: function () {
       var include;
       while (hinclude.buffer.length > 0) {
-        include = hinclude.buffer.pop();
+        include = hinclude.buffer.shift();
         hinclude.show_content(include[0], include[1]);
       }
     },
@@ -153,17 +156,18 @@ var hinclude;
         }
       }
       if (req) {
-        this.outstanding += 1;
         req.onreadystatechange = function () {
-          incl_cb(element, req);
+          if (req.readyState !== 4) return;
+          incl_cb(element, req, true);
         };
         try {
           req.open("GET", url, true);
           req.send("");
         } catch (e3) {
-          this.outstanding -= 1;
-          alert("Include error: " + url + " (" + e3 + ")");
+          delete req.onreadystatechange;
+          throw Error("Include error: " + url + " (" + e3 + ")");
         }
+        incl_cb(element, req, false);
       }
     },
     metaCache: {},
